@@ -1,10 +1,10 @@
 var express = require('express')
+var app = express()
 const server = require('http').createServer(app)
 var mqtt = require('mqtt')
 const io =  require('socket.io')(server)
 var path = require('path')
 var cors = require('cors')
-var app = express()
 const {spawn} = require('child_process');
 
 var client  = mqtt.connect('mqtt://localhost')
@@ -57,7 +57,6 @@ io.sockets.on("connection", (socket) => {
       socket.emit('connectionStatus', message.toString())
     }
     if(topic === 'esp/led/status'){
-      socket.emit('connectionStatus', 'Conectado')
       socket.emit('esp/led/status', message.toString())
     }
     if(topic === 'esp/pot/status'){
@@ -70,8 +69,6 @@ io.sockets.on("connection", (socket) => {
 });
 
 server.listen(3000, function (){
-
-  
   client.on('connect', function () {
     client.subscribe('presence', function (err) {
       if (!err) {
