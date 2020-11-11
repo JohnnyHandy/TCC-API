@@ -1,3 +1,4 @@
+var topics = require('./topics')
 var express = require('express')
 var app = express()
 const server = require('http').createServer(app)
@@ -10,7 +11,6 @@ const {spawn} = require('child_process');
 var client  = mqtt.connect('mqtt://localhost')
 app.use(express.static(path.join(__dirname, 'build')))
 app.use(cors())
-
 
 io.sockets.on("connection", (socket) => {
   socket.on("disconnect", () => {
@@ -33,59 +33,41 @@ io.sockets.on("connection", (socket) => {
       process.exit();
   }, 5000);
   })
-  socket.on('FromClient', response => {
-    client.publish('presence', response)
-  })
-  socket.on('esp/led/control', (response) => {
-    client.publish('esp/led/control', response.status.toString())
-  })
-  socket.on('esp/led/status/get', () => {
-    client.publish('esp/led/status/get', 'Requesting Led Status')
-  })
-  socket.on('rangeTest',(response) => {
-    let responseValue = response*1
-    let payload = Math.trunc((responseValue/100)*(1023))
-    client.publish('esp/led/analogwrite', payload.toString())
-  })
-  socket.on('potControl', (response) => {
-    console.log('potControl => ', response)
-    client.publish('esp/pot/control', response)
+  socket.on('apiSocket', (response) => {
+    const { topic, message } = response
+    client.publish(topic, message)
   })
   client.on('message', async function (topic, message) {
-
-    if(topic === 'esp/connection_status') {
-      socket.emit('connectionStatus', message.toString())
-    }
-    if(topic === 'esp/led/status'){
-      socket.emit('esp/led/status', message.toString())
-    }
-    if(topic === 'esp/pot/status'){
-      socket.emit('potStatus', message.toString())
-    }
-    if(topic === 'esp/button/status'){
-      socket.emit('buttonStatus', message.toString())
+    switch(topic) {
+      case topics.ESP_CONNECTION_SENDSTATUS :
+        return socket.emit('connectionStatus', message.toString());
+      case topics.ESP_LED_SENDSTATUS : 
+        return socket.emit('esp/led/status', message.toString());
+      case topics.ESP_POT_SENDSTATUS : 
+        return socket.emit('potStatus', message.toString());
+      case topics.ESP_BUTTON_SENDSTATUS :
+        return socket.emit('buttonStatus', message.toString());
+      default :
     }
   })
 });
 
 server.listen(3000, function (){
   client.on('connect', function () {
-    client.subscribe('presence', function (err) {
+    client.subscribe('+/presence', function (err) {
       if (!err) {
-        client.publish('presence', 'Hello from nodejs')
+        client.publish(topics.API_PRESENCE, 'Hello from nodejs')
       }
     })
-    client.subscribe('esp/led/status')
-    client.subscribe('esp/led/control')
-    client.subscribe('esp/connection_status')
-    client.subscribe('esp/button/status')
-    client.subscribe('esp/pot/control')
-    client.subscribe('esp/pot/status')
+    client.subscribe(topics.ESP_LED_SENDSTATUS)
+    client.subscribe(topics.ESP_LED_CONTROL)
+    client.subscribe(topics.ESP_CONNECTION_SENDSTATUS)
+    client.subscribe(topics.ESP_BUTTON_SENDSTATUS)
+    client.subscribe(topics.ESP_POT_CONTROL)
+    client.subscribe(topics.ESP_POT_SENDSTATUS)
   })
   client.on('message', function (topic, message) {
-    // message is Buffer
     console.log('Topic: ' + topic + ' Message: ' + message.toString()+'')
-    // client.end()
   })
    console.log('listening on 3000')
 })
