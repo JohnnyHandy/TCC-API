@@ -13,6 +13,12 @@ app.use(express.static(path.join(__dirname, 'build')))
 app.use(cors())
 
 io.sockets.on("connection", (socket) => {
+  const socketEmit = (topic, message) => {
+    return socket.emit('clientSocket', {
+      topic: topic,
+      message: message.toString()
+    })
+  }
   socket.on("disconnect", () => {
     console.log("Client disconnected");
   });
@@ -40,13 +46,17 @@ io.sockets.on("connection", (socket) => {
   client.on('message', async function (topic, message) {
     switch(topic) {
       case topics.ESP_CONNECTION_SENDSTATUS :
-        return socket.emit('connectionStatus', message.toString());
+        return socketEmit(topic, message)
+        // return socket.emit('connectionStatus', message.toString());
       case topics.ESP_LED_SENDSTATUS : 
-        return socket.emit('esp/led/status', message.toString());
-      case topics.ESP_POT_SENDSTATUS : 
-        return socket.emit('potStatus', message.toString());
+      return socketEmit(topic, message)
+      // return socket.emit('esp/led/status', message.toString());
+      case topics.ESP_POT_SENDSTATUS :
+        return socketEmit(topic, message)
+        // return socket.emit('potStatus', message.toString());
       case topics.ESP_BUTTON_SENDSTATUS :
-        return socket.emit('buttonStatus', message.toString());
+        return socketEmit(topic, message)
+        // return socket.emit('buttonStatus', message.toString());
       default :
     }
   })
