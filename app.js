@@ -47,16 +47,12 @@ io.sockets.on("connection", (socket) => {
     switch(topic) {
       case topics.ESP_CONNECTION_SENDSTATUS :
         return socketEmit(topic, message)
-        // return socket.emit('connectionStatus', message.toString());
       case topics.ESP_LED_SENDSTATUS : 
       return socketEmit(topic, message)
-      // return socket.emit('esp/led/status', message.toString());
       case topics.ESP_POT_SENDSTATUS :
         return socketEmit(topic, message)
-        // return socket.emit('potStatus', message.toString());
       case topics.ESP_BUTTON_SENDSTATUS :
         return socketEmit(topic, message)
-        // return socket.emit('buttonStatus', message.toString());
       default :
     }
   })
