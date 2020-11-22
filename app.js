@@ -41,6 +41,7 @@ io.sockets.on("connection", (socket) => {
   })
   socket.on('apiSocket', (response) => {
     const { topic, message } = response
+    console.log('topic', topic, 'message', message)
     client.publish(topic, message)
   })
   client.on('message', async function (topic, message) {
@@ -48,10 +49,14 @@ io.sockets.on("connection", (socket) => {
       case topics.ESP_CONNECTION_SENDSTATUS :
         return socketEmit(topic, message)
       case topics.ESP_LED_SENDSTATUS : 
-      return socketEmit(topic, message)
+        return socketEmit(topic, message)
       case topics.ESP_POT_SENDSTATUS :
         return socketEmit(topic, message)
+      case topics.ESP_POT_SETCONTROL :
+        return socketEmit(topic, message)
       case topics.ESP_BUTTON_SENDSTATUS :
+        return socketEmit(topic, message)
+      case topics.ESP_POT_SENDCONTROL :
         return socketEmit(topic, message)
       default :
     }
@@ -69,8 +74,10 @@ server.listen(3000, function (){
     client.subscribe(topics.ESP_LED_CONTROL)
     client.subscribe(topics.ESP_CONNECTION_SENDSTATUS)
     client.subscribe(topics.ESP_BUTTON_SENDSTATUS)
-    client.subscribe(topics.ESP_POT_CONTROL)
+    client.subscribe(topics.ESP_POT_SETCONTROL)
+    client.subscribe(topics.ESP_POT_SENDCONTROL)
     client.subscribe(topics.ESP_POT_SENDSTATUS)
+    client.subscribe(topics.ESP_PWMLED_SENDSTATUS)
   })
   client.on('message', function (topic, message) {
     console.log('Topic: ' + topic + ' Message: ' + message.toString()+'')
